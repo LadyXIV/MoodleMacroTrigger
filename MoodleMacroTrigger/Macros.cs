@@ -8,7 +8,6 @@ public static unsafe class Macros
     public static readonly string[] Sets = ["Individual", "Shared"];
     public const int PerSet = 100;
 
-    // Quack sets the macro lock for its own macros, which never move MacroCurrentLine.
     public static bool IsRunning
     {
         get

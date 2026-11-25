@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 
-// Moodles' StatusType and ChainTrigger enums become int here; Dalamud's IPC converts them through JSON.
 using MoodleInfo = (
     int Version, System.Guid GUID, int IconID, string Title, string Description,
     string CustomVFXPath, long ExpireTicks, int Type, int Stacks, int StackSteps,
@@ -46,7 +45,6 @@ public sealed partial class MoodlesIpc : IDisposable
 
     public static string StripFormatting(string title) => FormattingTag().Replace(title ?? "", "").Trim();
 
-    // The same tags Moodles itself strips from titles.
     [GeneratedRegex(@"\[color=[0-9a-zA-Z]+\]|\[/color\]|\[glow=[0-9a-zA-Z]+\]|\[/glow\]|\[i\]|\[/i\]", RegexOptions.IgnoreCase)]
     private static partial Regex FormattingTag();
 

@@ -69,7 +69,6 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Save() => pluginInterface.SavePluginConfig(Config);
 
-    // The game refuses to start a macro while another one runs, so a busy rule waits, interrupts or skips.
     public void Run(Rule rule, string reason)
     {
         if (!Macros.IsRunning)
@@ -104,7 +103,6 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnUpdate(IFramework _)
     {
-        // Moodles already on the character when it logs in or this plugin loads must not fire.
         if (player.ContentId != 0 && player.ContentId != seededFor && objects.LocalPlayer != null)
             Seed();
         if (waiting.Count > 0 && !Macros.IsRunning)
@@ -140,7 +138,6 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var moodle in arrived)
             log.Debug($"Moodle applied: {moodle.Title} [{moodle.Id}] from {moodle.Applier}");
 
-        // The game runs one macro at a time, so only the topmost matching rule fires.
         foreach (var rule in Config.Rules)
         {
             var moodle = arrived.FirstOrDefault(rule.Matches);
