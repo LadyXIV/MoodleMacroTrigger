@@ -11,6 +11,8 @@ public sealed class Configuration : IPluginConfiguration
     public List<Rule> Rules = [];
 }
 
+public enum IfBusy { Wait, Interrupt, Skip }
+
 [Serializable]
 public sealed class Rule
 {
@@ -19,6 +21,7 @@ public sealed class Rule
     public string Applier = "";
     public int MacroSet;
     public int MacroIndex;
+    public IfBusy IfBusy;
 
     public Guid? ParsedMoodleId => Guid.TryParse(MoodleId, out var id) ? id : null;
 

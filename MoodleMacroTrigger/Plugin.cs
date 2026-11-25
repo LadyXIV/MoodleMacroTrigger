@@ -23,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ConfigWindow configWindow;
 
     private HashSet<Guid> active = [];
+    private readonly List<(Rule Rule, string Reason)> waiting = [];
     private ulong seededFor;
 
     public Configuration Config { get; }
@@ -50,7 +51,7 @@ public sealed class Plugin : IDalamudPlugin
         pluginInterface.UiBuilder.Draw += windows.Draw;
         pluginInterface.UiBuilder.OpenConfigUi += configWindow.Toggle;
         pluginInterface.UiBuilder.OpenMainUi += configWindow.Toggle;
-        framework.Update += SeedOnLogin;
+        framework.Update += OnUpdate;
     }
 
     public List<Moodle>? CurrentMoodles()
@@ -68,23 +69,56 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Save() => pluginInterface.SavePluginConfig(Config);
 
+    // The game refuses to start a macro while another one runs, so a busy rule waits, interrupts or skips.
     public void Run(Rule rule, string reason)
     {
-        var ran = Macros.Run(rule.MacroSet, rule.MacroIndex);
-        LastFired = $"{DateTime.Now:HH:mm:ss}  {reason}: {Macros.Sets[rule.MacroSet]} macro {rule.MacroIndex}{(ran ? "" : " (empty)")}";
+        if (!Macros.IsRunning)
+        {
+            Execute(rule, reason);
+            return;
+        }
+        switch (rule.IfBusy)
+        {
+            case IfBusy.Wait:
+                waiting.Add((rule, reason));
+                Report(rule, reason, "waiting");
+                break;
+            case IfBusy.Interrupt:
+                Macros.Stop();
+                waiting.Insert(0, (rule, reason));
+                break;
+            case IfBusy.Skip:
+                Report(rule, reason, "skipped");
+                break;
+        }
+    }
+
+    private void Execute(Rule rule, string reason) =>
+        Report(rule, reason, Macros.Run(rule.MacroSet, rule.MacroIndex) ? "" : "empty");
+
+    private void Report(Rule rule, string reason, string outcome)
+    {
+        LastFired = $"{DateTime.Now:HH:mm:ss}  {reason}: {Macros.Sets[rule.MacroSet]} macro {rule.MacroIndex}{(outcome.Length > 0 ? $" ({outcome})" : "")}";
         log.Information(LastFired);
     }
 
-    // Moodles already on the character when it logs in or this plugin loads must not fire.
-    private void SeedOnLogin(IFramework _)
+    private void OnUpdate(IFramework _)
     {
+        // Moodles already on the character when it logs in or this plugin loads must not fire.
         if (player.ContentId != 0 && player.ContentId != seededFor && objects.LocalPlayer != null)
             Seed();
+        if (waiting.Count > 0 && !Macros.IsRunning)
+        {
+            var (rule, reason) = waiting[0];
+            waiting.RemoveAt(0);
+            Execute(rule, reason);
+        }
     }
 
     private void Seed()
     {
         seededFor = player.ContentId;
+        waiting.Clear();
         active = CurrentMoodles()?.Select(m => m.Id).ToHashSet() ?? [];
     }
 
@@ -120,7 +154,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        framework.Update -= SeedOnLogin;
+        framework.Update -= OnUpdate;
         pluginInterface.UiBuilder.Draw -= windows.Draw;
         pluginInterface.UiBuilder.OpenConfigUi -= configWindow.Toggle;
         pluginInterface.UiBuilder.OpenMainUi -= configWindow.Toggle;

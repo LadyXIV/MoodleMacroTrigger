@@ -8,6 +8,10 @@ public static unsafe class Macros
     public static readonly string[] Sets = ["Individual", "Shared"];
     public const int PerSet = 100;
 
+    public static bool IsRunning => RaptureShellModule.Instance()->MacroCurrentLine >= 0;
+
+    public static void Stop() => RaptureShellModule.Instance()->CancelMacro();
+
     public static bool Run(int set, int index)
     {
         var macro = Get(set, index);

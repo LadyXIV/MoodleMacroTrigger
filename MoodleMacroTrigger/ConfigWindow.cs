@@ -8,6 +8,8 @@ namespace MoodleMacroTrigger;
 
 public sealed class ConfigWindow : Window
 {
+    private static readonly string[] IfBusyNames = Enum.GetNames<IfBusy>();
+
     private readonly Plugin plugin;
 
     public ConfigWindow(Plugin plugin) : base("Moodle Macro Trigger###MoodleMacroTrigger")
@@ -35,12 +37,13 @@ public sealed class ConfigWindow : Window
         var changed = false;
         int? remove = null;
 
-        if (ImGui.BeginTable("rules", 6, ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
+        if (ImGui.BeginTable("rules", 7, ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
         {
             ImGui.TableSetupColumn("On");
             ImGui.TableSetupColumn("Moodle ID", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("Applied by", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("Macro");
+            ImGui.TableSetupColumn("If busy");
             ImGui.TableSetupColumn("");
             ImGui.TableSetupColumn("");
             ImGui.TableHeadersRow();
@@ -78,6 +81,15 @@ public sealed class ConfigWindow : Window
                 {
                     ImGui.SameLine();
                     ImGui.TextDisabled(name);
+                }
+
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(110);
+                var ifBusy = (int)rule.IfBusy;
+                if (ImGui.Combo("##busy", ref ifBusy, IfBusyNames))
+                {
+                    rule.IfBusy = (IfBusy)ifBusy;
+                    changed = true;
                 }
 
                 ImGui.TableNextColumn();
