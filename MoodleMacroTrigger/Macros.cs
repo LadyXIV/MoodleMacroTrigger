@@ -8,7 +8,15 @@ public static unsafe class Macros
     public static readonly string[] Sets = ["Individual", "Shared"];
     public const int PerSet = 100;
 
-    public static bool IsRunning => RaptureShellModule.Instance()->MacroCurrentLine >= 0;
+    // Quack sets the macro lock for its own macros, which never move MacroCurrentLine.
+    public static bool IsRunning
+    {
+        get
+        {
+            var shell = RaptureShellModule.Instance();
+            return shell->MacroCurrentLine >= 0 || shell->MacroLocked;
+        }
+    }
 
     public static void Stop() => RaptureShellModule.Instance()->CancelMacro();
 
