@@ -1,0 +1,9 @@
+{
+  "Author": "Lady",
+  "Name": "Moodle Macro Trigger",
+  "Punchline": "Run a macro when a moodle is applied",
+  "Description": "Run a macro when a moodle is applied",
+  "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/LadyXIV/MoodleMacroTrigger",
+  "Tags": ["moodles", "macro", "roleplay"]
+}
